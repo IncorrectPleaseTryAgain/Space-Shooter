@@ -34,18 +34,38 @@ public class EnemyLogic : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         target = GameObject.FindGameObjectWithTag("Player");
+    }
+
+    private void Start() 
+    { 
         targetGravityScale = target.GetComponent<PlayerController>().GetGravityScale();
+        targetDirection = (target.transform.position - transform.position).normalized; 
     }
 
-    private void Start() { targetDirection = (target.transform.position - transform.position).normalized; }
-
-    private void Update() 
-    {
-        targetDirection = (target.transform.position - transform.position).normalized;
-    }
+    private void Update() { targetDirection = (target.transform.position - transform.position).normalized; }
 
     private void FixedUpdate()
     {
-        rb.AddForce(Vector2.ClampMagnitude(((targetDirection * targetGravityScale) / targetDirection.magnitude), properties.maxSpeed));
+        rb.AddForce(((targetDirection * targetGravityScale) / targetDirection.magnitude));
+        rb.velocity = Vector2.ClampMagnitude(rb.velocity, properties.maxSpeed);
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        string tag = collision.gameObject.tag;
+
+        if (tag.Equals(TagNames.Player))
+        {
+            PlayerController player = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
+            if (player != null)
+            {
+                player.ApplyDamage(properties.damage);
+            }
+            else
+            {
+                Debug.LogError("Player Controller == null, EnemyLogic.cs - OnTriggerEnter2D");
+                throw new System.NullReferenceException();
+            }
+        }
     }
 }

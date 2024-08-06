@@ -108,4 +108,10 @@ public class PlayerController : MonoBehaviour
     // Getters And Setters
     public Vector2 GetVelocity() { return rb.velocity; }
     public float GetGravityScale() { return properties.gravityScale; }
+    public void ApplyDamage(float damage) 
+    { 
+        properties.health -= damage;
+
+        _isAlive = properties.health > 0;
+    }
 }

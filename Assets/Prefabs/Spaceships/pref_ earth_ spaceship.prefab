@@ -367,7 +367,7 @@ MonoBehaviour:
     health: 100
     maxSpeed: 15
     acceleration: 1
-    gravityScale: 0
+    gravityScale: 25
     _projectile: {fileID: 2877719493017311949, guid: 8a26c8fec7681ba43af4ac6d6299dbb3, type: 3}
   _isMoving: 0
   _isAlive: 1
