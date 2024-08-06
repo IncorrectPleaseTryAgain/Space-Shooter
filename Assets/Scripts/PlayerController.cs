@@ -11,9 +11,12 @@ public class PlayerController : MonoBehaviour
     Rigidbody2D rb;
     [SerializeField]
     Animator anim;
+    [SerializeField]
+    GameObject projectileSpawner; // Define In Editor
 
+    // Properties
     [Serializable]
-    public struct Properties
+    struct Properties
     {
         public string name;
         public string description;
@@ -22,15 +25,14 @@ public class PlayerController : MonoBehaviour
         public float maxSpeed;
         public float acceleration;
         public float gravityScale;
+
+        public GameObject _projectile;
     }
     [SerializeField]
     Properties properties;
 
-    // Getters And Setters
-
     // Private
     Vector2 moveInput;
-
 
     // Properties
     [SerializeField]
@@ -38,9 +40,9 @@ public class PlayerController : MonoBehaviour
     public bool IsMoving
     {
         get { return _isMoving; }
-        private set 
+        private set
         {
-            if(_isMoving != value)
+            if (_isMoving != value)
             {
                 _isMoving = value;
             }
@@ -67,15 +69,6 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
     }
-
-    private void FixedUpdate()
-    {
-        if (_isMoving)
-        {
-            rb.velocity = Vector2.ClampMagnitude(rb.velocity + (moveInput * properties.acceleration), properties.maxSpeed);
-        }
-    }
-
     private void Update()
     {
         // Get mouse position
@@ -87,11 +80,34 @@ public class PlayerController : MonoBehaviour
         transform.up = direction;
     }
 
+    private void FixedUpdate()
+    {
+        if (_isMoving)
+        {
+            rb.velocity = Vector2.ClampMagnitude(rb.velocity + (moveInput * properties.acceleration), properties.maxSpeed);
+        }
+    }
 
     // Unity Event Methods
     public void OnMove(InputAction.CallbackContext context)
     {
         moveInput = context.ReadValue<Vector2>();
         IsMoving = moveInput != Vector2.zero;
+    }
+
+    public void OnAttack(InputAction.CallbackContext context)
+    {
+        // Check that action is complete
+        // Action only happens once per input
+        if (context.performed)
+        {
+            Instantiate(properties._projectile, projectileSpawner.transform.position, transform.rotation);
+        }
+    }
+
+    // Getters And Setters
+    public Vector2 GetVelocity() 
+    {
+        return rb.velocity;
     }
 }

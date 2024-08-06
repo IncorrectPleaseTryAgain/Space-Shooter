@@ -1,17 +1,20 @@
-using UnityEngine;
 using System;
+using UnityEngine;
 
 public class FollowCamera : MonoBehaviour
 {
+    // Components
     [SerializeField]
     Camera cam;
     [SerializeField]
     SpriteRenderer sprt;
 
+    // Private
     Vector2 startPos;
     Vector2 objSize;
     Vector2 camSize;
 
+    // Unity Built-In Methods
     private void Awake()
     {
         sprt = GetComponent<SpriteRenderer>();
