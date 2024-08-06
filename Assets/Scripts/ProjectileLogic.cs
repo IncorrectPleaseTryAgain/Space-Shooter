@@ -36,8 +36,9 @@ public class ProjectileLogic : MonoBehaviour
 
     private void OnBecameInvisible()
     {
-        DestroySelf();
-    }   
+        if (!GlobalMethods.DestroyObject(this.gameObject)) { Debug.LogError(LogErrors.DestroyFailed + this.gameObject); }
+    }
 
-    public void DestroySelf() { UnityEngine.Object.Destroy(this.gameObject); }
+    // Getters And Setters
+    public float GetDamage() { return properties.damage; }
 }

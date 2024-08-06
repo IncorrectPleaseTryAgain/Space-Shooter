@@ -23,9 +23,6 @@ public class EnemyLogic : MonoBehaviour
     Properties properties;
 
     // Private
-    [SerializeField]
-    bool inRange = false;
-
     Vector2 targetDirection;
     float targetGravityScale;
 
@@ -54,18 +51,41 @@ public class EnemyLogic : MonoBehaviour
     {
         string tag = collision.gameObject.tag;
 
+        // Object == Player
         if (tag.Equals(TagNames.Player))
         {
-            PlayerController player = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>();
+            PlayerController player = GameObject.FindGameObjectWithTag(TagNames.Player).GetComponent<PlayerController>();
             if (player != null)
             {
                 player.ApplyDamage(properties.damage);
             }
             else
             {
-                Debug.LogError("Player Controller == null, EnemyLogic.cs - OnTriggerEnter2D");
                 throw new System.NullReferenceException();
             }
         }
+        // Object == Projectile
+        else if (tag.Equals(TagNames.Projectile))
+        {
+            ProjectileLogic projectile = GameObject.FindGameObjectWithTag(TagNames.Projectile).GetComponent<ProjectileLogic>();
+
+            if (projectile != null)
+            {
+                ApplyDamage(projectile.GetDamage());
+                GlobalMethods.DestroyObject(collision.gameObject);
+            }
+            else
+            {
+                throw new System.NullReferenceException();
+            }
+        }
+    }
+
+    // Getters And Setters
+    public void ApplyDamage(float damage)
+    {
+        properties.health -= damage;
+
+        if(properties.health <= 0) { GlobalMethods.DestroyObject(this.gameObject); }
     }
 }

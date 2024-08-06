@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class _TEMPLATE_ : MonoBehaviour
+public class TEMPLATE : MonoBehaviour
 {
     // Components (Naming Convention: _camelCase)
 
