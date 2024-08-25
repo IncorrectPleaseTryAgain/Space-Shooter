@@ -1,4 +1,5 @@
 using System;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -71,18 +72,32 @@ public class PlayerController : MonoBehaviour
     }
     private void Update()
     {
-        // Get mouse position
-        Vector2 mousePosition = Input.mousePosition;
-        mousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
+        if (IsAlive)
+        {
 
-        // Point player to mouse position
-        Vector2 direction = new Vector2(mousePosition.x - transform.position.x, mousePosition.y - transform.position.y);
-        transform.up = direction;
+            // Get mouse position
+            Vector2 mousePosition = Input.mousePosition;
+            mousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
+
+            // Point player to mouse position
+            Vector2 direction = new Vector2(mousePosition.x - transform.position.x, mousePosition.y - transform.position.y);
+            transform.up = direction;
+        }
+        else
+        {
+            PlayerDeathHandler();
+        }
+    }
+
+    private void PlayerDeathHandler()
+    {
+        rb.velocity = Vector2.zero;
+        StateManager.instance.UpdateGameState(GameStates.Dead);
     }
 
     private void FixedUpdate()
     {
-        if (_isMoving)
+        if (_isMoving && !StateManager.instance.IsPaused)
         {
             rb.velocity = Vector2.ClampMagnitude(rb.velocity + (moveInput * properties.acceleration), properties.maxSpeed);
         }
@@ -91,17 +106,23 @@ public class PlayerController : MonoBehaviour
     // Unity Event Methods
     public void OnMove(InputAction.CallbackContext context)
     {
-        moveInput = context.ReadValue<Vector2>();
-        IsMoving = moveInput != Vector2.zero;
+        if (!StateManager.instance.IsPaused && IsAlive)
+        {
+            moveInput = context.ReadValue<Vector2>();
+            IsMoving = moveInput != Vector2.zero;
+        }
     }
 
     public void OnAttack(InputAction.CallbackContext context)
     {
-        // Check that action is complete
-        // Action only happens once per input
-        if (context.performed)
+        if (!StateManager.instance.IsPaused && IsAlive)
         {
-            Instantiate(properties._projectile, projectileSpawner.transform.position, transform.rotation);
+            // Check that action is complete
+            // Action only happens once per input
+            if (context.performed)
+            {
+                Instantiate(properties._projectile, projectileSpawner.transform.position, transform.rotation);
+            }
         }
     }
 
@@ -109,9 +130,12 @@ public class PlayerController : MonoBehaviour
     public Vector2 GetVelocity() { return rb.velocity; }
     public float GetGravityScale() { return properties.gravityScale; }
     public void ApplyDamage(float damage) 
-    { 
-        properties.health -= damage;
+    {
+        if (!StateManager.instance.IsPaused && IsAlive)
+        {
+            properties.health -= damage;
 
-        _isAlive = properties.health > 0;
+            _isAlive = properties.health > 0;
+        }
     }
 }

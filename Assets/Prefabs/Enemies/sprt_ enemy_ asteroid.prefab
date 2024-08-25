@@ -165,10 +165,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ad869cac64da84459761d5486b518e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  velocity: {x: 0, y: 0}
+  rb: {fileID: 0}
+  enemyMarker: {fileID: 8562890078247038420, guid: b01fd9b59939a184ba36f13941a7417c, type: 3}
+  targets: []
+  initialVelocity: {x: 0, y: 0}
   properties:
     name: 
     description: 
     health: 50
     damage: 10
-    maxSpeed: 15
-  inRange: 0
+    maxSpeed: 10
+  targetDirection: {x: 0, y: 0}
+  gravityScale: 0

@@ -32,10 +32,10 @@ public class _TEMPLATE_ : MonoBehaviour
     */
 
     // Unity Built-In Methods
-    //private void Awake() { }
-    //private void Start() { }
-    //private void Update() { }
-    //private void FixedUpdate(){ }
+    //private void Awake()
+    //private void Start()
+    //private void Update()
+    //private void FixedUpdate()
 
     // Unity Event Methods
     // Getters And Setters
