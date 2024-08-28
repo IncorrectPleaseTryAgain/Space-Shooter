@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 4178667535721077406}
   - component: {fileID: 7050981745975407992}
   - component: {fileID: 8787904822394796681}
+  - component: {fileID: 5277605811278559217}
   m_Layer: 8
   m_Name: sprt_ enemy_ asteroid
   m_TagString: Untagged
@@ -79,9 +80,9 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 10ecedd240772ce44850d0ec3c03c3bc, type: 3}
+  m_Sprite: {fileID: 21300000, guid: abe8458044d669f42943d3683596aaa0, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_FlipX: 0
+  m_FlipX: 1
   m_FlipY: 0
   m_DrawMode: 0
   m_Size: {x: 0.32, y: 0.32}
@@ -166,10 +167,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   velocity: {x: 0, y: 0}
-  rb: {fileID: 0}
+  anim: {fileID: 5277605811278559217}
+  rb: {fileID: 4178667535721077406}
+  cam: {fileID: 0}
   enemyMarker: {fileID: 8562890078247038420, guid: b01fd9b59939a184ba36f13941a7417c, type: 3}
   targets: []
   initialVelocity: {x: 0, y: 0}
+  camPos: {x: 0, y: 0}
+  camSize: {x: 0, y: 0}
   properties:
     name: 
     description: 
@@ -178,3 +183,25 @@ MonoBehaviour:
     maxSpeed: 10
   targetDirection: {x: 0, y: 0}
   gravityScale: 0
+--- !u!95 &5277605811278559217
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1122936249608745283}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: d789cad66b32e8d4999cd28aa00ac21b, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

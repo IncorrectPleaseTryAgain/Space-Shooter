@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
@@ -7,6 +8,11 @@ public class ProjectileLogic : MonoBehaviour
     // Components
     [SerializeField]
     Rigidbody2D rb;
+
+    [SerializeField]
+    float timer = 1f;
+    float timerCount;
+    bool isTimerOn = false;
 
     // Properties
     [Serializable]
@@ -34,9 +40,26 @@ public class ProjectileLogic : MonoBehaviour
         rb.velocity = new Vector2(startVel.x + (transform.up.x * properties.speed), startVel.y + (transform.up.y * properties.speed));
     }
 
+    private void Update()
+    {
+        if (isTimerOn)
+        {
+            if(timerCount <= 0f) { GlobalMethods.DestroyObject(this.gameObject); }
+
+            timerCount -= Time.deltaTime;
+        }
+    }
+
     private void OnBecameInvisible()
     {
-        if (!GlobalMethods.DestroyObject(this.gameObject)) { Debug.LogError(LogErrors.DestroyFailed + this.gameObject); }
+        timerCount = timer;
+        isTimerOn = true;
+    }
+
+    private void OnBecameVisible()
+    {
+        isTimerOn = false;
+        timerCount = timer;
     }
 
     // Getters And Setters

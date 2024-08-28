@@ -1,7 +1,10 @@
 using System;
+//using System.Diagnostics;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
+//using UnityEngine.UI;
+using System.Diagnostics;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -19,10 +22,23 @@ public class GameManager : MonoBehaviour
     int currentRound;
     int numEnemies;
 
+    [SerializeField]
+    TMP_Text clock;
+    private Stopwatch stopwatch;
+
+    bool playerIsAlive;
+
+    float timer;
+    AudioSource audioSource;
+    public TimeSpan timeElapsed { get; private set; }
+
     private void Awake()
     {
         StateManager.OnGameStateChanged += OnGameStateChangedHandler;
         currentRound = 0;
+        timer = UnityEngine.Random.Range(15, 30);
+
+        playerIsAlive = true;
     }
 
     private void OnDestroy()
@@ -31,6 +47,9 @@ public class GameManager : MonoBehaviour
     }
     private void Start()
     {
+        stopwatch = new Stopwatch();
+        stopwatch.Start();
+
         round.text = currentRound.ToString();
     }
 
@@ -38,7 +57,7 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (StateManager.instance.IsPaused) { StateManager.instance.UpdateGameState(GameStates.Play); }
+            if (StateManager.instance.IsPaused) { StateManager.instance.UpdateGameState(GameStates.Resume); }
             else if (!StateManager.instance.IsPaused) { StateManager.instance.UpdateGameState(GameStates.Pause); }
             //Debug.Log("Pause Toggle: " + StateManager.instance.IsPaused);
         }
@@ -46,8 +65,24 @@ public class GameManager : MonoBehaviour
         if (numEnemies <= 0)
         {
             currentRound++;
-            round.text = currentRound.ToString();
             StateManager.instance.UpdateGameState(GameStates.RoundStart);
+        }
+
+       
+        if (playerIsAlive)
+        {
+            if (timer <= 0f)
+            {
+                audioSource = SoundFXManager.instance.PlayRandomSoundFXClip(Sounds.instance.Game, transform, 0.1f);
+                timer = UnityEngine.Random.Range(audioSource.clip.length + 30, 60);
+                //UnityEngine.Debug.Log("New Song: " + audioSource);
+            }
+            timer -= Time.deltaTime;
+
+
+            TimeSpan ts = stopwatch.Elapsed;
+            string time = String.Format("{0:00}:{1:00}:{2:00}.{3:00}", ts.Hours, ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+            clock.text = time;
         }
     }
 
@@ -56,20 +91,16 @@ public class GameManager : MonoBehaviour
         switch (state)
         {
             case GameStates.StartGame:
-                StateManager.instance.UpdateGameState(GameStates.Play);
+                StateManager.instance.UpdateGameState(GameStates.Resume);
                 break;
-            case GameStates.Play:
-                pauseMenu.SetActive(false);
-                deathScreen.SetActive(false);
-                NewRoundBegin();
+            case GameStates.Resume:
+                ResumeHandler();
                 break;
             case GameStates.Pause:
-                pauseMenu.SetActive(true);
-                deathScreen.SetActive(false);
+                PauseHandler();
                 break;
             case GameStates.Dead:
-                deathScreen.SetActive(true);
-                pauseMenu.SetActive(false);
+                DeathHandler();
                 break;
             case GameStates.RoundStart:
                 NewRoundBegin();
@@ -80,8 +111,34 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void PauseHandler()
+    {
+        SoundFXManager.instance.PlaySoundFXClip(Sounds.instance.PauseMenuOpen, transform, 1f);
+        if (audioSource != null) { audioSource.Pause(); }
+        pauseMenu.SetActive(true);
+        deathScreen.SetActive(false);
+    }
+
+    private void ResumeHandler()
+    {
+        SoundFXManager.instance.PlaySoundFXClip(Sounds.instance.PauseMenuClose, transform, 1f);
+        if (audioSource != null) { audioSource.Play(); }
+        pauseMenu.SetActive(false);
+        deathScreen.SetActive(false);
+    }
+
+    private void DeathHandler()
+    {
+        playerIsAlive = false;
+        if (audioSource != null) { audioSource.Stop(); }
+        pauseMenu.SetActive(false);
+        deathScreen.SetActive(true);
+    }
+
     private void NewRoundBegin()
     {
+        round.text = currentRound.ToString();
+        SoundFXManager.instance.PlaySoundFXClip(Sounds.instance.RoundStart, transform, 1.5f);
         numEnemies = currentRound;
 
         for (int i = 0; i < numEnemies; i++)
@@ -110,7 +167,7 @@ public class GameManager : MonoBehaviour
     public void SetVolume(UnityEngine.UI.Slider slider) {  }
     public void SetFullscreen(UnityEngine.UI.Toggle toggle) { }
 
-    public void Resume() { StateManager.instance.UpdateGameState(GameStates.Play); }
+    public void Resume() { StateManager.instance.UpdateGameState(GameStates.Resume); }
     public void MainMenu() { StateManager.instance.UpdateGameState(GameStates.MainMenu); }
     public void Restart() { StateManager.instance.UpdateGameState(GameStates.Restart); }
 }

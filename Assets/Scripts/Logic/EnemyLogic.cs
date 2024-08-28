@@ -11,6 +11,8 @@ public class EnemyLogic : MonoBehaviour
 
     // Components
     [SerializeField]
+    Animator anim;
+    [SerializeField]
     Rigidbody2D rb;
     [SerializeField]
     Camera cam;
@@ -26,7 +28,10 @@ public class EnemyLogic : MonoBehaviour
     bool play = false;
 
     GameObject marker;
-    bool enemyMarkerActive = false;
+
+    float timer = 0.5f;
+    float timerCount;
+    bool isTimerOn = false;
 
     [SerializeField]
     Vector2 camPos;
@@ -68,6 +73,21 @@ public class EnemyLogic : MonoBehaviour
     [SerializeField]
     float gravityScale;
 
+    [SerializeField]
+    bool _isAlive = true;
+    public bool IsAlive
+    {
+        get
+        {
+            return _isAlive;
+        }
+        private set
+        {
+            _isAlive = value;
+            anim.SetBool("isAlive", value);
+        }
+    }
+
     // Unity Built-In Methods
 
     private void OnDestroy()
@@ -77,7 +97,17 @@ public class EnemyLogic : MonoBehaviour
 
     private void OnGameStateChangedHandler(GameStates state)
     {
-        play = (state == GameStates.Play);
+        play = (state == GameStates.Resume);
+        if(state == GameStates.Dead)
+        {
+            DestroySelf();
+            if (this.marker != null) { GlobalMethods.DestroyObject(this.marker); }
+        }
+    }
+
+    private void DestroySelf()
+    {
+        GlobalMethods.DestroyObject(this.gameObject);
     }
 
     private void Awake()
@@ -85,13 +115,14 @@ public class EnemyLogic : MonoBehaviour
         StateManager.OnGameStateChanged += OnGameStateChangedHandler;
         rb = GetComponent<Rigidbody2D>();
         cam = Camera.main;
+        anim = GetComponent<Animator>();
     }
 
     private void Start()
     {
         marker = Instantiate(enemyMarker, camPos, Quaternion.Euler(0, 0, 0));
         camSize = new Vector2(cam.orthographicSize * 2f * cam.aspect, cam.orthographicSize * 2f);
-        marker.SetActive(false);
+        marker.SetActive(true);
 
         // Add Player
         Target player = new Target();
@@ -130,6 +161,17 @@ public class EnemyLogic : MonoBehaviour
 
     private void Update()
     {
+        if (isTimerOn)
+        {
+            timerCount -= Time.deltaTime;
+
+            if (timerCount <= 0f)
+            {
+                isTimerOn = false;
+                Debug.Log("Timer End");
+            }
+        }
+
         gravityScale = 0;
         if (numTargets > 0)
         {
@@ -154,7 +196,7 @@ public class EnemyLogic : MonoBehaviour
             targetDirection = targetDirection.normalized;
         }
 
-        if (enemyMarkerActive)
+        if (marker != null && marker.activeSelf)
         {
             camPos = cam.transform.position;
             float camLeftEdge = camPos.x - (camSize.x / 2);
@@ -209,16 +251,18 @@ public class EnemyLogic : MonoBehaviour
         {
             rb.AddForce(targetDirection * gravityScale);
             rb.velocity = Vector2.ClampMagnitude(rb.velocity, properties.maxSpeed);
+
+            if (!isTimerOn)
+            {
+                rb.AddForce(targetDirection * gravityScale);
+                rb.velocity = Vector2.ClampMagnitude(rb.velocity, properties.maxSpeed);
+                velocity = rb.velocity;
+            }
         }
         else
         {
             rb.velocity = Vector2.zero;
         }
-
-        rb.AddForce(targetDirection * gravityScale);
-        rb.velocity = Vector2.ClampMagnitude(rb.velocity, properties.maxSpeed);
-
-        velocity = rb.velocity;
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -234,6 +278,10 @@ public class EnemyLogic : MonoBehaviour
                 if (player != null)
                 {
                     player.ApplyDamage(properties.damage);
+
+                    timerCount = timer;
+                    isTimerOn = true;
+                    Debug.Log("Timer Start");
                 }
                 else
                 {
@@ -247,7 +295,10 @@ public class EnemyLogic : MonoBehaviour
 
                 if (projectile != null)
                 {
-                    ApplyDamage(projectile.GetDamage());
+                    if (!StateManager.instance.IsPaused)
+                    {
+                        ApplyDamage(projectile.GetDamage());
+                    }
                     GlobalMethods.DestroyObject(collision.gameObject);
                 }
                 else
@@ -260,14 +311,12 @@ public class EnemyLogic : MonoBehaviour
 
     void OnBecameInvisible()
     {
-        enemyMarkerActive = true;
         if (marker) { marker.SetActive(true); }
         //Debug.Log("VISIBLE: false");
     }
 
     void OnBecameVisible()
     {
-        enemyMarkerActive = false;
         if (marker) { marker.SetActive(false); }
         marker.transform.position = Vector3.zero;
         //Debug.Log("VISIBLE: true");
@@ -276,16 +325,34 @@ public class EnemyLogic : MonoBehaviour
     // Getters And Setters
     public void ApplyDamage(float damage)
     {
-        if (!StateManager.instance.IsPaused)
+
+        if (IsAlive)
         {
             properties.health -= damage;
-
-            if (properties.health <= 0)
+            IsAlive = properties.health > 0;
+            if (IsAlive)
             {
-                GlobalMethods.DestroyObject(marker);
-                GlobalMethods.DestroyObject(this.gameObject);
-                StateManager.instance.UpdateGameState(GameStates.EnemyKilled);
+                SoundFXManager.instance.PlaySoundFXClip(Sounds.instance.EnemyHit, transform, 0.3f);
+            }
+            else
+            {
+                EnemyDeathHandler();
             }
         }
+
+        //if (properties.health <= 0)
+        //{
+        //    GlobalMethods.DestroyObject(marker);
+        //    DestroySelf();
+        //    StateManager.instance.UpdateGameState(GameStates.EnemyKilled);
+        //}
+    }
+
+    private void EnemyDeathHandler()
+    {
+        Debug.Log("Enemy KIlled");
+        SoundFXManager.instance.PlaySoundFXClip(Sounds.instance.EnemyDeath, transform, 0.1f);
+        GlobalMethods.DestroyObject(marker);
+        StateManager.instance.UpdateGameState(GameStates.EnemyKilled);
     }
 }

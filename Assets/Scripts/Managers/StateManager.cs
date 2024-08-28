@@ -37,8 +37,8 @@ public class StateManager : MonoBehaviour
             case GameStates.Pause:
                 PauseStateHandler();
                 break;
-            case GameStates.Play:
-                PlayStateHandler();
+            case GameStates.Resume:
+                ResumeStateHandler();
                 break;
             case GameStates.Restart:
                 RestartStateHandler();
@@ -69,7 +69,7 @@ public class StateManager : MonoBehaviour
         SceneManager.LoadScene(SceneNames.Game);
     }
 
-    private void PlayStateHandler()
+    private void ResumeStateHandler()
     {
         IsPaused = false;
     }
@@ -129,7 +129,7 @@ public enum GameStates
     Settings,
     Credits,
     Pause,
-    Play,
+    Resume,
     Dead,
     Restart,
     RoundStart,
