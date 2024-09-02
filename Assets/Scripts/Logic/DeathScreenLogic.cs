@@ -2,14 +2,10 @@ using UnityEngine;
 
 public class DeathScreenLogic : MonoBehaviour
 {
-    bool hasBeenActivated = false;
-    private void Awake()
-    {
-        transform.localScale = Vector3.zero;
-    }
+    [SerializeField] private const float SCALE_UP_RATE = 0.005f;
+    private bool hasBeenActivated = false;
 
-
-    float rate = 0.005f;
+    private void Awake() { transform.localScale = Vector3.zero; }
     private void Update()
     {
         if (!hasBeenActivated)
@@ -23,7 +19,7 @@ public class DeathScreenLogic : MonoBehaviour
         {
             if (transform.localScale.x < 1)
             {
-                transform.localScale += new Vector3(rate, rate, rate); 
+                transform.localScale += new Vector3(SCALE_UP_RATE, SCALE_UP_RATE, 0f); 
             }
         }
     }

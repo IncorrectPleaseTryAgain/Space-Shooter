@@ -1,28 +1,20 @@
-using System;
 using UnityEngine;
 
-public class FollowCamera : MonoBehaviour
+[RequireComponent(typeof(SpriteRenderer))]
+public class BackgroundLogic : MonoBehaviour
 {
-    // Components
-    [SerializeField]
-    Camera cam;
-    [SerializeField]
-    SpriteRenderer sprt;
+    [SerializeField] private Camera cam;
+    [SerializeField] private SpriteRenderer sprt;
 
-    // Private
-    Vector2 startPos;
-    Vector2 objSize;
-    Vector2 camSize;
+    private Vector2 objSize;
+    private Vector2 camSize;
 
-    // Unity Built-In Methods
-    private void Awake()
-    {
-        sprt = GetComponent<SpriteRenderer>();
-    }
+    private void Awake() { sprt = GetComponent<SpriteRenderer>(); }
 
     private void Start()
     {
-        startPos = transform.position;
+        cam = Camera.main;
+
         objSize = new Vector2(sprt.bounds.size.x, sprt.bounds.size.y);
         camSize = new Vector2(cam.orthographicSize * 2f * cam.aspect, cam.orthographicSize * 2f);
     }

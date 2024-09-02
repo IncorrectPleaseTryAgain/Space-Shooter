@@ -1,20 +1,10 @@
 using System;
-using System.Threading;
+using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class ProjectileLogic : MonoBehaviour
 {
-    // Components
-    [SerializeField]
-    Rigidbody2D rb;
-
-    [SerializeField]
-    float timer = 1f;
-    float timerCount;
-    bool isTimerOn = false;
-
-    // Properties
     [Serializable]
     public struct Properties
     {
@@ -22,46 +12,23 @@ public class ProjectileLogic : MonoBehaviour
         public string description;
 
         public float speed;
+        public float lifetime; // Seconds
         public float damage;
+        public List<AudioClip> shotSFX;
+        public List<AudioClip> hitSFX;
     }
-    [SerializeField]
-    Properties properties;
+    [SerializeField] private Properties properties;
+    [SerializeField] private Rigidbody2D rb;
 
-    // Unity Built-In Methods
-    private void Awake()
+    private void Awake() { rb = GetComponent<Rigidbody2D>(); }
+    public void Shoot(Vector2 velocity)
     {
-        rb = GetComponent<Rigidbody2D>();
+        rb.velocity = velocity;
+        rb.velocity += new Vector2(transform.up.x * properties.speed, transform.up.y * properties.speed);
+        PlayShotSFX();
     }
 
-    private void Start()
-    {
-        Vector2 startVel = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerController>().GetVelocity();
-
-        rb.velocity = new Vector2(startVel.x + (transform.up.x * properties.speed), startVel.y + (transform.up.y * properties.speed));
-    }
-
-    private void Update()
-    {
-        if (isTimerOn)
-        {
-            if(timerCount <= 0f) { GlobalMethods.DestroyObject(this.gameObject); }
-
-            timerCount -= Time.deltaTime;
-        }
-    }
-
-    private void OnBecameInvisible()
-    {
-        timerCount = timer;
-        isTimerOn = true;
-    }
-
-    private void OnBecameVisible()
-    {
-        isTimerOn = false;
-        timerCount = timer;
-    }
-
-    // Getters And Setters
+    private void PlayShotSFX() { AudioManager.instance.PlayProjectileSFX(properties.shotSFX); }
     public float GetDamage() { return properties.damage; }
+    public void PlayHitSFX() { AudioManager.instance.PlayProjectileSFX(properties.hitSFX); }
 }

@@ -2,10 +2,15 @@ using UnityEngine;
 
 public class EnemySpawnerLogic : MonoBehaviour
 {
-    public void Spawn(GameObject obj)
+    private const float OFFSET_X = 5f;
+    private const float OFFSET_Y = 5f;
+
+    public void SpawnEnemy(GameObject obj)
     {
         GameObject enemy = obj;
-        enemy.transform.position = Vector3.zero;
+        Vector2 spawnPos = new(UnityEngine.Random.Range(transform.position.x - OFFSET_X, transform.position.x + OFFSET_X),
+                               UnityEngine.Random.Range(transform.position.y - OFFSET_Y, transform.position.y - OFFSET_Y));
+        enemy.transform.position = spawnPos;
         Instantiate(enemy);
     }
 }

@@ -5,8 +5,7 @@ TagManager:
   serializedVersion: 3
   tags:
   - Projectile
-  - PauseMenu
-  - GravityPoint
+  - Asteroid
   layers:
   - Default
   - TransparentFX

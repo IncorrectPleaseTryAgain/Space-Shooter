@@ -1,31 +1,17 @@
 using System;
-using Unity.Cinemachine;
-using Unity.VisualScripting;
 using UnityEngine;
+using Unity.Cinemachine;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 [RequireComponent (typeof(Rigidbody2D))]
 [RequireComponent (typeof(Animator))]
 public class PlayerController : MonoBehaviour
 {
-    // Components
-    [SerializeField]
-    Rigidbody2D rb;
-    [SerializeField]
-    Animator anim;
-    [SerializeField]
-    GameObject projectileSpawner;
-    [SerializeField]
-    CinemachineImpulseSource impulseSource;
-
-    [SerializeField]
-    bool isSoundOn = true;
-
-    // Properties
     [Serializable]
-    struct Properties
+    private struct Properties
     {
-        public string name;
+        public string name; 
         public string description;
 
         public float health;
@@ -33,17 +19,21 @@ public class PlayerController : MonoBehaviour
         public float acceleration;
         public float gravityScale;
 
-        public GameObject _projectile;
+
+        public List<AudioClip> deathSFX;
+        public List<AudioClip> hitSFX;
     }
-    [SerializeField]
-    Properties properties;
+    [SerializeField] private Properties properties;
 
-    // Private
-    Vector2 moveInput;
+    [SerializeField] private Rigidbody2D rb;
+    [SerializeField] private Animator anim;
+    [SerializeField] private GameObject projectilePrefab;
+    [SerializeField] private GameObject projectileSpawner;
+    [SerializeField] private CinemachineImpulseSource impulseSource;
 
-    // Properties
-    [SerializeField]
-    bool _isMoving = false;
+    private Vector2 moveInput;
+
+    [SerializeField] private bool _isMoving = false;
     public bool IsMoving
     {
         get { return _isMoving; }
@@ -56,14 +46,10 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    [SerializeField]
-    bool _isAlive = true;
+    [SerializeField] private bool _isAlive = true;
     public bool IsAlive
     {
-        get
-        {
-            return _isAlive;
-        }
+        get { return _isAlive; }
         private set
         {
             _isAlive = value;
@@ -71,93 +57,100 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // Unity Built-In Methods
+    [SerializeField] private bool _isPaused = false;
+    public bool IsPaused
+    {
+        get { return _isPaused; }
+        private set{ _isPaused = value; }
+    }
+
     private void Awake()
     {
+        StateManager.OnGameStateChanged += OnGameStateChangedHandler;
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
     }
+    private void OnDestroy() { StateManager.OnGameStateChanged -= OnGameStateChangedHandler; }
+
+    private void OnGameStateChangedHandler(GameStates state)
+    {
+        switch (state)
+        {
+            case GameStates.GamePause:
+                IsPaused = true;
+                break;
+            case GameStates.GameResume:
+                IsPaused = false;
+                break;
+        }
+    }
+
     private void Update()
     {
         if (IsAlive)
         {
-
-            // Get mouse position
-            Vector2 mousePosition = Input.mousePosition;
-            mousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
-
-            // Point player to mouse position
-            Vector2 direction = new Vector2(mousePosition.x - transform.position.x, mousePosition.y - transform.position.y);
-            transform.up = direction;
+            RotateToMousePosition();
         }
     }
-
-    private void PlayerDeathHandler()
-    {
-        Debug.Log("DEAD");
-        if (isSoundOn)
-        {
-            int rand = UnityEngine.Random.Range(1, 1000);
-            if (rand == 1) { SoundFXManager.instance.PlaySoundFXClip(Sounds.instance.PlayerDeathRare, transform, 1.5f); }
-            else { SoundFXManager.instance.PlaySoundFXClip(Sounds.instance.PlayerDeath, transform, 1.5f); }
-        }
-
-        StateManager.instance.UpdateGameState(GameStates.Dead);
-    }
-
     private void FixedUpdate()
     {
-        //if (_isMoving && !StateManager.instance.IsPaused)
-        if(_isAlive && !StateManager.instance.IsPaused)
+        if (IsAlive && !IsPaused)
         {
             rb.velocity = Vector2.ClampMagnitude(rb.velocity + (moveInput * properties.acceleration), properties.maxSpeed);
         }
     }
 
-    // Unity Event Methods
     public void OnMove(InputAction.CallbackContext context)
     {
-        if (!StateManager.instance.IsPaused && IsAlive)
+        if (!IsPaused && IsAlive)
         {
             moveInput = context.ReadValue<Vector2>();
             IsMoving = moveInput != Vector2.zero;
         }
     }
 
+    private void RotateToMousePosition()
+    {
+        // Get mouse position
+        Vector2 mousePosition = Input.mousePosition;
+        mousePosition = Camera.main.ScreenToWorldPoint(mousePosition);
+
+        // Rotate spaceship towards mouse position
+        Vector2 direction = new Vector2(mousePosition.x - transform.position.x, mousePosition.y - transform.position.y);
+        transform.up = direction;
+    }
+
     public void OnAttack(InputAction.CallbackContext context)
     {
-        if (!StateManager.instance.IsPaused && IsAlive)
+        if (!IsPaused && IsAlive)
         {
-            Debug.Log("At");
-            // Check that action is complete
-            // Action only happens once per input
-            if (context.performed)
-            {
-                Instantiate(properties._projectile, projectileSpawner.transform.position, transform.rotation);
-                if (isSoundOn) { SoundFXManager.instance.PlaySoundFXClip(Sounds.instance.PlayerShoot, transform, 0.1f); }
+            if (context.performed) 
+            { 
+                projectileSpawner.GetComponent<ProjectileSpawnerLogic>().SpawnProjectile(projectilePrefab, rb.velocity);
             }
         }
     }
 
-    // Getters And Setters
-    public Vector2 GetVelocity() { return rb.velocity; }
-    public float GetGravityScale() { return properties.gravityScale; }
-
     public void ApplyDamage(float damage) 
     {
-        if (!StateManager.instance.IsPaused && IsAlive)
+        if (!IsPaused && IsAlive)
         {
             properties.health -= damage;
             IsAlive = properties.health > 0;
             if (IsAlive)
             {
                 impulseSource.GenerateImpulseWithForce(1f);
-                if (isSoundOn) { SoundFXManager.instance.PlaySoundFXClip(Sounds.instance.PlayerHit, transform, 0.3f); }
+                AudioManager.instance.PlayPlayerSFX(properties.hitSFX);
             }
-            else
+            else 
             {
-                PlayerDeathHandler();
+                AudioManager.instance.PlayPlayerSFX(properties.deathSFX);
+                StateManager.instance.UpdateGameState(GameStates.PlayerDeath);
             }
         }
     }
+
+
+    //public Vector2 GetVelocity() { return rb.velocity; }
+    public float GetGravityScale() { return properties.gravityScale; }
 }

@@ -1,10 +1,9 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class ButtonLogic : MonoBehaviour
 {
-    public void PointerEnterHandler()
-    {
-        SoundFXManager.instance.PlaySoundFXClip(Sounds.instance.Button, transform, 1f);
-    }
+    [SerializeField] private AudioClip pointerEnterSFX;
+    [SerializeField] private GameStates onClickState;
+    public void PlayPointerEnterSFX() { AudioManager.instance.PlaySoundQueue(pointerEnterSFX); }
+    public void OnClickSetState() { StateManager.instance.UpdateGameState(onClickState); }
 }
