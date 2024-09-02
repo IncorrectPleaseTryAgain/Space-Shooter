@@ -66,9 +66,9 @@ public class GameManager : MonoBehaviour
             musicTimer -= Time.deltaTime;
 
             // Timer
-            TimeSpan ts = stopwatch.Elapsed;
-            time = (ts.Hours > 0) ? String.Format("{0:00}:{1:00}:{2:00}.{3:00}", ts.Hours, ts.Minutes, ts.Seconds, ts.Milliseconds / 10)
-                                         : String.Format("{0:00}:{1:00}.{2:00}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+            TimeSpan timeSpan = stopwatch.Elapsed;
+            time = (timeSpan.Hours > 0) ? String.Format("{0:00}:{1:00}:{2:00}.{3:00}", timeSpan.Hours, timeSpan.Minutes, timeSpan.Seconds, timeSpan.Milliseconds / 10)
+                                         : String.Format("{0:00}:{1:00}.{2:00}", timeSpan.Minutes, timeSpan.Seconds, timeSpan.Milliseconds / 10);
             clockText.text = time;
         }
     }
@@ -149,8 +149,7 @@ public class GameManager : MonoBehaviour
     }
     private void PlayerDeathHandler()
     {
-        SaveManager.instance.SetBestRound(currentRound, time);
-        SaveManager.instance.Save();
+        SaveManager.instance.SaveBestRound(currentRound, time);
 
         playerIsAlive = false;
         if (pauseMenu.activeSelf) { pauseMenu.SetActive(false); }
