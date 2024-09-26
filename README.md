@@ -2,7 +2,7 @@
 # Space Shooter Arcade Game
 * [Preview](#preview)
 * [Development Time](#development-time)
-* [Development Process](development-process)
+* [Development Process](#development-process)
 * [Features](#features)
 
 <br>
